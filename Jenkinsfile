@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        node {
-            label 'docker-agent-eduscope'
-        }
-    }
+    agent any
 
     environment {
         DOCKER_HUB_USER = 'devarshtpatel'  
