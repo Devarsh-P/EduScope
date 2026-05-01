@@ -1,0 +1,13 @@
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\config\CorsConfig.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\controller\ApiController.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\EduPlatformApplication.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\AnalyticsResponse.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\Course.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\RecommendationRequest.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\SearchRequest.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\SearchResult.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\model\ValidationResponse.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\service\AnalysisService.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\service\PlatformCrawlerService.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\util\TextUtils.java
+C:\ACC\EduScope\backend\src\main\java\com\project\edu\util\Trie.java

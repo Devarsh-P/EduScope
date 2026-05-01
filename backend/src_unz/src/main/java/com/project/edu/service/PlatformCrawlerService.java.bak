@@ -1,0 +1,224 @@
+package com.project.edu.service;
+
+import com.project.edu.model.Course;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.springframework.stereotype.Service;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class PlatformCrawlerService {
+
+    public List<Course> crawlAll() {
+        return crawlAll("");
+    }
+
+    public List<Course> crawlAll(String query) {
+        List<Course> courses = new ArrayList<>();
+        courses.addAll(crawlKhanAcademy(query));
+        courses.addAll(crawlEdx(query));
+        courses.addAll(crawlFutureLearn(query));
+        courses.addAll(crawlClassCentral(query));
+        courses.addAll(crawlSaylor(query));
+
+        // remove duplicates by URL
+        Map<String, Course> unique = new LinkedHashMap<>();
+        for (Course course : courses) {
+            if (course.getUrl() != null && !course.getUrl().isBlank()) {
+                unique.putIfAbsent(course.getUrl(), course);
+            }
+        }
+
+        return new ArrayList<>(unique.values());
+    }
+
+    public List<Course> crawlKhanAcademy(String query) {
+        String url = query == null || query.isBlank()
+                ? "https://www.khanacademy.org/"
+                : "https://www.khanacademy.org/search?page_search_query=" + encode(query);
+
+        return crawlPlatform(
+                "Khan Academy",
+                url,
+                List.of("/math/", "/computing/", "/science/", "/humanities/", "/college-careers-more/"),
+                query,
+                "No formal certificate",
+                "Free",
+                "Video + Practice",
+                "Self-paced learning"
+        );
+    }
+
+    public List<Course> crawlEdx(String query) {
+        String url = "https://www.edx.org/search?q=" + encode(query == null ? "" : query);
+
+        return crawlPlatform(
+                "edX",
+                url,
+                List.of("/learn/", "/course/"),
+                query,
+                "Verified certificate available",
+                "Free / Paid Certificate",
+                "Video + Assignments",
+                "University-backed content"
+        );
+    }
+
+    public List<Course> crawlFutureLearn(String query) {
+        String url = "https://www.futurelearn.com/search?q=" + encode(query == null ? "" : query);
+
+        return crawlPlatform(
+                "FutureLearn",
+                url,
+                List.of("/courses/"),
+                query,
+                "Certificate available",
+                "Subscription",
+                "Video + Activities",
+                "Guided learning experience"
+        );
+    }
+
+    public List<Course> crawlClassCentral(String query) {
+        String url = "https://www.classcentral.com/search?q=" + encode(query == null ? "" : query);
+
+        return crawlPlatform(
+                "Class Central",
+                url,
+                List.of("/course/"),
+                query,
+                "Certificate depends on provider",
+                "Free / Paid",
+                "Aggregated Course Links",
+                "Course discovery platform"
+        );
+    }
+
+    public List<Course> crawlSaylor(String query) {
+        String url = query == null || query.isBlank()
+                ? "https://learn.saylor.org/"
+                : "https://learn.saylor.org/course/search.php?search=" + encode(query);
+
+        return crawlPlatform(
+                "Saylor Academy",
+                url,
+                List.of("/course/"),
+                query,
+                "Certificate of completion",
+                "Free",
+                "Reading + Exams",
+                "Low-cost certification pathway"
+        );
+    }
+
+    private List<Course> crawlPlatform(
+            String platform,
+            String url,
+            List<String> pathHints,
+            String query,
+            String certification,
+            String pricing,
+            String format,
+            String features
+    ) {
+        try {
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0")
+                    .timeout((int) Duration.ofSeconds(15).toMillis())
+                    .get();
+
+            List<String> queryTokens = tokenize(query);
+            List<Course> results = new ArrayList<>();
+            Set<String> seenUrls = new HashSet<>();
+
+            for (Element link : doc.select("a[href]")) {
+                String absUrl = link.absUrl("href");
+                String title = clean(link.text());
+
+                if (title.isBlank()) continue;
+                if (title.length() < 5) continue;
+                if (absUrl.isBlank()) continue;
+                if (seenUrls.contains(absUrl)) continue;
+                if (!matchesAnyHint(absUrl, pathHints)) continue;
+                if (!matchesQuery(title, absUrl, queryTokens)) continue;
+
+                seenUrls.add(absUrl);
+
+                String id = platform.substring(0, Math.min(platform.length(), 2)).toUpperCase() + "_" + Math.abs(absUrl.hashCode());
+
+                results.add(new Course(
+                        id,
+                        platform,
+                        title,
+                        query == null || query.isBlank() ? "General" : query,
+                        "Live crawled result for \"" + (query == null ? "" : query) + "\" from " + platform + ".",
+                        certification,
+                        pricing,
+                        format,
+                        features,
+                        "N/A",
+                        "N/A",
+                        absUrl
+                ));
+
+                if (results.size() >= 8) break;
+            }
+
+            return results;
+        } catch (Exception ex) {
+            return new ArrayList<>();
+        }
+    }
+
+    private boolean matchesAnyHint(String url, List<String> hints) {
+        for (String hint : hints) {
+            if (url.contains(hint)) return true;
+        }
+        return false;
+    }
+
+    private boolean matchesQuery(String title, String url, List<String> queryTokens) {
+    if (queryTokens.isEmpty()) return true;
+
+    String lowerTitle = title.toLowerCase();
+    String lowerUrl = url.toLowerCase();
+
+    int matched = 0;
+
+    for (String token : queryTokens) {
+        if (lowerTitle.contains(token) || lowerUrl.contains(token)) {
+            matched++;
+        }
+    }
+
+    // one-word query: must match somewhere
+    if (queryTokens.size() == 1) {
+        return matched >= 1;
+    }
+
+    // multi-word query: allow partially related results
+    // but require at least one strong match
+    return matched >= 1;
+}
+
+    private List<String> tokenize(String text) {
+        if (text == null || text.isBlank()) return List.of();
+        return Arrays.stream(text.toLowerCase().trim().split("\\s+"))
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    private String encode(String text) {
+        return URLEncoder.encode(text == null ? "" : text, StandardCharsets.UTF_8);
+    }
+
+    private String clean(String text) {
+        return text == null ? "" : text.replaceAll("\\s+", " ").trim();
+    }
+}

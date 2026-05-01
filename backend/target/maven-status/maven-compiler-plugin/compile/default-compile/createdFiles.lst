@@ -1,0 +1,15 @@
+com\project\edu\util\Trie$Node.class
+com\project\edu\service\AnalysisService.class
+com\project\edu\model\SearchResult.class
+com\project\edu\model\RecommendationRequest.class
+com\project\edu\config\CorsConfig$1.class
+com\project\edu\service\PlatformCrawlerService.class
+com\project\edu\model\AnalyticsResponse.class
+com\project\edu\util\Trie.class
+com\project\edu\config\CorsConfig.class
+com\project\edu\controller\ApiController.class
+com\project\edu\model\SearchRequest.class
+com\project\edu\model\Course.class
+com\project\edu\EduPlatformApplication.class
+com\project\edu\model\ValidationResponse.class
+com\project\edu\util\TextUtils.class
