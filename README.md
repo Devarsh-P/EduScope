@@ -1,76 +1,182 @@
-# Online Education Platform Analysis - Website Version
+<div align="center">
 
-This is a **full website version** of the project:
-- **Backend:** Java Spring Boot
-- **Frontend:** React + Vite
+# 🎓 EduScope
 
-## What it includes
-- Web crawling architecture with JSoup
-- HTML parsing
-- Inverted indexing
-- Page ranking
-- Frequency count
-- Search frequency tracking
-- Spell checking using edit distance
-- Word completion using Trie
-- Regex validation and pattern finding
-- Recommendation system
+**Crawl. Analyse. Discover.**
 
-## Important reality check
-Real sites like Coursera and Udemy are dynamic. So this project uses:
-1. **Live fetch attempt** of homepage HTML using JSoup
-2. **Fallback sample course data** for stable demo output
+A full-stack web application that scrapes online education platforms, analyses course data, and delivers intelligent search, recommendations, and analytics — all in one place.
 
-That means your demo will work even if live crawling changes.
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.5-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white)](https://www.jenkins.io/)
 
-## Backend setup
+</div>
+
+---
+
+## 📁 Project Structure
+
+```
+EduScope/
+├── 📂 backend/
+│   ├── src/main/java/com/project/edu/
+│   │   ├── config/          # CORS configuration
+│   │   ├── controller/      # REST API endpoints
+│   │   ├── model/           # Data models
+│   │   ├── service/         # Business logic, crawler, analysis
+│   │   └── util/            # Trie, text utilities
+│   ├── data/                # CSV data files (courses, search history, logs)
+│   └── pom.xml
+├── 📂 frontend/
+│   ├── src/
+│   │   ├── pages/           # FinalHomePage
+│   │   ├── api.js           # API calls to backend
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── vite.config.js
+│   └── package.json
+├── 🐳 Dockerfile
+├── 🐳 .dockerignore
+└── ⚙️  Jenkinsfile
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+| Tool | Version |
+|---|---|
+| Java | 17+ |
+| Maven | 3.x |
+| Node.js + npm | 18+ |
+| Docker | any recent version |
+
+---
+
+### ▶️ Option 1 — Run Locally (without Docker)
+
+**Start the backend**
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-Backend URL:
-- http://localhost:8081/api/health
+> Runs on `http://localhost:8081`
 
-## Frontend setup
-Open a new terminal:
+**Start the frontend** (in a new terminal)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Frontend URL:
-- http://localhost:5173
+> Runs on `http://localhost:5173`
 
-## Suggested presentation flow
-1. Refresh crawl data
-2. Show crawled course cards
-3. Search a keyword and show ranking
-4. Show autocomplete words
-5. Show spell suggestions for a wrong word
-6. Show analytics / search frequency
-7. Show regex validation for URL and price text
-8. Show recommendation system
+---
 
-## Files you should mention in report
-### Backend
-- `PlatformCrawlerService.java`
-- `AnalysisService.java`
-- `ApiController.java`
-- `Trie.java`
-- `TextUtils.java`
+### 🐳 Option 2 — Run with Docker
 
-### Frontend
-- `App.jsx`
-- `styles.css`
+**Build the image**
+```bash
+docker build -t eduscope .
+```
 
-## What you should improve before submission
-- Replace fallback/sample data with more exact selectors per platform
-- Add CSV export if your team wants extra feature points
-- Take screenshots of every required feature
-- Write report sections mapping each student to Java files and algorithms
+**Run the container**
+```bash
+docker run -p 8081:8081 -p 5173:5173 eduscope
+```
 
+Then open **`http://localhost:5173`** in your browser.
 
-## Updated crawl behavior
-- Default crawl now targets 10 configured topics: python, java, machine learning, data science, ai, aws, c++, web development, salesforce, business analyst.
-- The crawler keeps up to 30 results per platform and saves them to `backend/data/courses.csv`.
-- The CSV file is overwritten on every fresh crawl, so old rows are removed automatically.
+> The image is built on `eclipse-temurin:17-jdk-alpine` for a minimal footprint. Both services run inside the same container.
+
+---
+
+## 🌐 API Reference
+
+All endpoints are prefixed with `/api` and served on port `8081`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `GET` | `/courses` | Get all cached courses |
+| `GET` | `/crawl` | Re-crawl platforms and refresh data |
+| `POST` | `/search` | Search cached courses by keyword |
+| `POST` | `/crawl-search` | Re-crawl then search by keyword |
+| `GET` | `/autocomplete?prefix=` | Word completion suggestions |
+| `GET` | `/spellcheck?word=` | Spell check suggestions |
+| `GET` | `/analytics` | Course analytics data |
+| `POST` | `/recommend` | Course recommendations |
+| `GET` | `/validate?url=&priceText=` | URL and price regex validation |
+| `GET` | `/index-preview` | Inverted index preview |
+| `GET` | `/frequency?courseId=&word=` | Word frequency for a course |
+| `GET` | `/crawl-summary` | Summary of last crawl |
+
+---
+
+## ⚙️ CI/CD Pipeline
+
+EduScope uses a **Jenkins pipeline** that automatically builds and pushes a new Docker image to Docker Hub on every commit.
+
+```
+ Git Commit
+     │
+     ▼
+ Jenkins detects change (polls every 5 min)
+     │
+     ▼
+┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐    ┌──────────┐
+│  Checkout   │ →  │ Build Image  │ →  │  Push to Docker Hub │ →  │ Cleanup  │
+└─────────────┘    └──────────────┘    └─────────────────────┘    └──────────┘
+```
+
+Each build produces two tags:
+- `:latest` — always points to the most recent build
+- `:<build_number>` — e.g. `:42`, allowing rollback to any previous version
+
+### 🔧 Jenkins Setup
+
+**1. Store your Docker Hub credentials in Jenkins**
+
+Go to `Jenkins → Manage Jenkins → Credentials → Add Credentials`
+
+| Field | Value |
+|---|---|
+| Kind | Username with password |
+| Username | your Docker Hub username |
+| Password | your Docker Hub password or access token |
+| ID | `dockerhub-credentials` |
+
+**2. Edit the two variables at the top of `Jenkinsfile`**
+
+```groovy
+DOCKER_HUB_USER = 'your-dockerhub-username'   // ← your Docker Hub username
+IMAGE_NAME      = 'eduscope'                   // ← your desired image name
+```
+
+**3. Create a Pipeline job in Jenkins**
+
+- New Item → **Pipeline**
+- Definition → `Pipeline script from SCM`
+- SCM → `Git` → paste your repository URL
+- Script Path → `Jenkinsfile`
+- Save → click **Build Now** once to activate the polling trigger
+
+> After the first manual run, Jenkins handles everything automatically — no action needed on new commits.
+
+---
+
+## 🔒 Security Note
+
+Docker Hub credentials are stored exclusively inside Jenkins and are **never hardcoded** in any file in this repository. The `Jenkinsfile` only references the credential by its Jenkins ID, which is safe to commit publicly.
+
+---
+
+<div align="center">
+
+Made with ☕ and Java
+
+</div>
